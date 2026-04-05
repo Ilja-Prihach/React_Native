@@ -15,7 +15,9 @@ export default function HomeScreen() {
       <Text style={styles.category}>{item.category}</Text>
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.summary}>{item.summary}</Text>
-      <Text style={styles.cta}>{item.id === 'expo-router' ? 'Открыть пример' : 'Открыть детали'}</Text>
+      <Text style={styles.cta}>
+        {item.id === 'expo-router' || item.id === 'async-storage' ? 'Открыть пример' : 'Открыть детали'}
+      </Text>
     </HapticPressable>
   );
 

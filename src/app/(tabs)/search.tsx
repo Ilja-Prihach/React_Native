@@ -4,7 +4,7 @@ import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HapticPressable from '@/components/HapticPressable';
 import { demoItems } from '@/data/demoItems';
-import { detailsHref, loginHref } from '@/navigation/routes';
+import { demoItemHref, loginHref } from '@/navigation/routes';
 import type { DemoItem } from '@/types';
 
 export default function SearchScreen() {
@@ -22,7 +22,7 @@ export default function SearchScreen() {
   });
 
   const renderItem = ({ item }: { item: DemoItem }) => (
-    <Link href={detailsHref(item.id)} asChild>
+    <Link href={demoItemHref(item.id)} asChild>
       <HapticPressable style={({ pressed }) => [styles.resultCard, pressed && styles.resultCardPressed]}>
         <Text style={styles.resultCategory}>{item.category}</Text>
         <Text style={styles.resultTitle}>{item.title}</Text>
