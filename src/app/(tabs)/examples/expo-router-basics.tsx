@@ -1,6 +1,7 @@
 import { Link, router } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import BackButton from '@/components/BackButton';
 import HapticPressable from '@/components/HapticPressable';
 import {
   detailsHref,
@@ -28,6 +29,10 @@ const routeFacts = [
 export default function ExpoRouterBasicsScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
+      <View style={styles.topBar}>
+        <BackButton />
+      </View>
+
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
           <Text style={styles.eyebrow}>Пример</Text>
@@ -104,8 +109,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5efe6',
   },
+  topBar: {
+    paddingHorizontal: 20,
+    paddingTop: 0,
+  },
   content: {
     padding: 20,
+    paddingTop: 8,
     paddingBottom: 36,
     gap: 18,
   },
