@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackButton from '@/components/BackButton';
@@ -7,41 +8,41 @@ import { deleteSavedProfile, loadSavedProfiles } from '@/storage';
 import type { UserProfile } from '@/types';
 
 export default function SavedProfilesScreen() {
+  const { refresh } = useLocalSearchParams<{ refresh?: string }>();
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [statusMessage, setStatusMessage] = useState<string>('Загрузка сохранённых профилей...');
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function hydrateProfiles() {
-      try {
-        const storedProfiles = await loadSavedProfiles();
-        if (isMounted) {
-          setProfiles(storedProfiles);
-          setStatusMessage(
-            storedProfiles.length > 0
-              ? 'Сохранённые профили загружены.'
-              : 'Список пока пуст. Добавьте профиль с экрана AsyncStorage draft.'
-          );
-        }
-      } catch {
-        if (isMounted) {
-          setStatusMessage('Не удалось загрузить сохранённые профили.');
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
+  const hydrateProfiles = useCallback(async () => {
+    try {
+      setLoading(true);
+      const storedProfiles = await loadSavedProfiles();
+      setProfiles(storedProfiles);
+      setStatusMessage(
+        storedProfiles.length > 0
+          ? 'Сохранённые профили загружены.'
+          : 'Список пока пуст. Добавьте профиль с экрана AsyncStorage draft.'
+      );
+    } catch {
+      setStatusMessage('Не удалось загрузить сохранённые профили.');
+    } finally {
+      setLoading(false);
     }
-
-    hydrateProfiles();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      hydrateProfiles();
+    }, [hydrateProfiles])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (refresh) {
+        hydrateProfiles();
+      }
+    }, [hydrateProfiles, refresh])
+  );
 
   async function handleDelete(profileId: string) {
     try {

@@ -11,7 +11,7 @@ import {
   saveProfileToCollection,
   saveProfileDraft,
 } from '@/storage';
-import { savedProfilesHref } from '@/navigation/routes';
+import { savedProfilesHref, savedProfilesRefreshHref } from '@/navigation/routes';
 import type { UserProfile } from '@/types';
 
 type StatusTone = 'neutral' | 'success' | 'error';
@@ -104,6 +104,7 @@ export default function AsyncStorageDraftScreen() {
       });
       setStatusMessage('Профиль добавлен в коллекцию сохранённых примеров.');
       setStatusTone('success');
+      router.push(savedProfilesRefreshHref(`${Date.now()}`));
     } catch {
       setStatusMessage('Не удалось добавить профиль в коллекцию.');
       setStatusTone('error');

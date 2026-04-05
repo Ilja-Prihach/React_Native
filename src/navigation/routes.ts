@@ -29,6 +29,13 @@ export function demoItemHref(id: DemoItem['id']) {
   return detailsHref(id);
 }
 
+export function savedProfilesRefreshHref(refreshToken: string) {
+  return {
+    pathname: '/examples/saved-profiles',
+    params: { refresh: refreshToken },
+  } satisfies Href;
+}
+
 // TypeScript must reject this because the dynamic route requires `id`,
 // but the params object provides an unknown key `slug`.
 // const invalidDetailsHref = {
