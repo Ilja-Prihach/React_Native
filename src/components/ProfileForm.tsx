@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { ProfileFormProps } from '../types';
 
 export default function ProfileForm({ initialProfile, onSave, onCancel }: ProfileFormProps) {
@@ -11,6 +11,7 @@ export default function ProfileForm({ initialProfile, onSave, onCancel }: Profil
         placeholder="Введите имя"
         placeholderTextColor="#8d8d8d"
         style={styles.input}
+        returnKeyType="next"
       />
 
       <Text style={styles.label}>Bio</Text>
@@ -22,6 +23,8 @@ export default function ProfileForm({ initialProfile, onSave, onCancel }: Profil
         style={[styles.input, styles.multilineInput]}
         multiline
         textAlignVertical="top"
+        blurOnSubmit
+        onSubmitEditing={Keyboard.dismiss}
       />
 
       <Text style={styles.label}>Аватар URL</Text>
@@ -33,6 +36,9 @@ export default function ProfileForm({ initialProfile, onSave, onCancel }: Profil
         style={styles.input}
         autoCapitalize="none"
         autoCorrect={false}
+        keyboardType="url"
+        returnKeyType="done"
+        onSubmitEditing={Keyboard.dismiss}
       />
 
       <Text style={styles.helper} onPress={onCancel}>

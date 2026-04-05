@@ -1,4 +1,13 @@
-import { StyleSheet, Text, View, Image, Pressable, ActivityIndicator } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Keyboard,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import ProfileForm from './ProfileForm';
 import type { ProfileCardProps } from '../types';
 
@@ -12,7 +21,10 @@ export default function ProfileCard({
   loading,
   error,
   saving,
+  isEditing,
   onSave,
+  onStartEdit,
+  onCancelEdit,
   onProfileChange,
   onReset,
 }: EditableProfileCardProps) {
@@ -26,42 +38,79 @@ export default function ProfileCard({
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <View style={styles.card}>
+          <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
 
-        <ProfileForm
-          initialProfile={profile}
-          onSave={(nextProfile) => {
-            onProfileChange('name', nextProfile.name);
-            onProfileChange('bio', nextProfile.bio);
-            onProfileChange('avatarUrl', nextProfile.avatarUrl);
-          }}
-          onCancel={onReset}
-        />
-
-        <Text style={styles.previewTitle}>Предпросмотр</Text>
-        <Text style={styles.name}>{profile.name}</Text>
-        <Text style={styles.bio}>{profile.bio}</Text>
-
-        {error && <Text style={styles.errorText}>{error}</Text>}
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.button,
-            (pressed || saving) && styles.buttonPressed,
-          ]}
-          onPress={onSave}
-          disabled={saving}
-        >
-          {saving ? (
-            <ActivityIndicator size="small" color="#fff" />
+          {!isEditing ? (
+            <>
+              <Text style={styles.name}>{profile.name}</Text>
+              <Text style={styles.bio}>{profile.bio}</Text>
+            </>
           ) : (
-            <Text style={styles.buttonText}>Сохранить</Text>
+            <>
+              <ProfileForm
+                initialProfile={profile}
+                onSave={(nextProfile) => {
+                  onProfileChange('name', nextProfile.name);
+                  onProfileChange('bio', nextProfile.bio);
+                  onProfileChange('avatarUrl', nextProfile.avatarUrl);
+                }}
+                onCancel={onReset}
+              />
+
+              <Text style={styles.previewTitle}>Предпросмотр</Text>
+              <Text style={styles.name}>{profile.name}</Text>
+              <Text style={styles.bio}>{profile.bio}</Text>
+            </>
           )}
-        </Pressable>
+
+          {error && <Text style={styles.errorText}>{error}</Text>}
+
+          {!isEditing ? (
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                (pressed || saving) && styles.buttonPressed,
+              ]}
+              onPress={onStartEdit}
+              disabled={saving}
+            >
+              <Text style={styles.buttonText}>Редактировать</Text>
+            </Pressable>
+          ) : (
+            <View style={styles.actions}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.secondaryButton,
+                  pressed && styles.secondaryButtonPressed,
+                ]}
+                onPress={onCancelEdit}
+                disabled={saving}
+              >
+                <Text style={styles.secondaryButtonText}>Отмена</Text>
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.button,
+                  (pressed || saving) && styles.buttonPressed,
+                ]}
+                onPress={onSave}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Сохранить</Text>
+                )}
+              </Pressable>
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -131,6 +180,31 @@ const styles = StyleSheet.create({
     minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  actions: {
+    width: '100%',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'center',
+  },
+  secondaryButton: {
+    minHeight: 44,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#c9c9c9',
+    backgroundColor: '#f4f4f4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryButtonPressed: {
+    backgroundColor: '#e7e7e7',
+  },
+  secondaryButtonText: {
+    color: '#3d3d3d',
+    fontSize: 16,
+    fontWeight: '600',
   },
   buttonPressed: {
     backgroundColor: '#005EC4',

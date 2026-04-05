@@ -1,4 +1,5 @@
 import * as Haptics from 'expo-haptics';
+import { Keyboard } from 'react-native';
 import { useEffect, useState } from 'react';
 import ProfileCard from '@/components/ProfileCard';
 import { defaultProfile, loadProfile, saveProfile } from '@/storage';
@@ -9,6 +10,7 @@ export default function ProfileScreen() {
   const [persistedProfile, setPersistedProfile] = useState<UserProfile>(defaultProfile);
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -49,6 +51,7 @@ export default function ProfileScreen() {
 
     if (!trimmedProfile.name || !trimmedProfile.bio || !trimmedProfile.avatarUrl) {
       setError('Заполните имя, bio и ссылку на аватар.');
+      Keyboard.dismiss();
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
@@ -56,10 +59,12 @@ export default function ProfileScreen() {
     try {
       setSaving(true);
       setError(null);
+      Keyboard.dismiss();
       await Haptics.selectionAsync();
       await saveProfile(trimmedProfile);
       setProfile(trimmedProfile);
       setPersistedProfile(trimmedProfile);
+      setIsEditing(false);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
       setError('Не удалось сохранить профиль.');
@@ -81,13 +86,28 @@ export default function ProfileScreen() {
     setError(null);
   }
 
+  function handleStartEdit() {
+    setIsEditing(true);
+    setError(null);
+  }
+
+  function handleCancelEdit() {
+    Keyboard.dismiss();
+    setProfile(persistedProfile);
+    setIsEditing(false);
+    setError(null);
+  }
+
   return (
     <ProfileCard
       profile={profile}
       loading={loading}
       error={error}
       saving={saving}
+      isEditing={isEditing}
       onSave={handleSave}
+      onStartEdit={handleStartEdit}
+      onCancelEdit={handleCancelEdit}
       onProfileChange={handleProfileChange}
       onReset={handleReset}
     />
