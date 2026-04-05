@@ -9,7 +9,7 @@ export type ProfileCardProps = {
   loading: boolean;
   error: string | null;
   saving: boolean;
-  onEdit: () => void;
+  onSave: () => void;
 };
 
 export type ProfileFormProps = {

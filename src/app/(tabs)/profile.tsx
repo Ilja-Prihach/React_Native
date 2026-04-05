@@ -6,6 +6,7 @@ import type { UserProfile } from '@/types';
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<UserProfile>(defaultProfile);
+  const [persistedProfile, setPersistedProfile] = useState<UserProfile>(defaultProfile);
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +19,7 @@ export default function ProfileScreen() {
         const storedProfile = await loadProfile();
         if (isMounted) {
           setProfile(storedProfile);
+          setPersistedProfile(storedProfile);
           setError(null);
         }
       } catch {
@@ -39,11 +41,25 @@ export default function ProfileScreen() {
   }, []);
 
   async function handleSave() {
+    const trimmedProfile: UserProfile = {
+      name: profile.name.trim(),
+      bio: profile.bio.trim(),
+      avatarUrl: profile.avatarUrl.trim(),
+    };
+
+    if (!trimmedProfile.name || !trimmedProfile.bio || !trimmedProfile.avatarUrl) {
+      setError('Заполните имя, bio и ссылку на аватар.');
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
+    }
+
     try {
       setSaving(true);
       setError(null);
       await Haptics.selectionAsync();
-      await saveProfile(profile);
+      await saveProfile(trimmedProfile);
+      setProfile(trimmedProfile);
+      setPersistedProfile(trimmedProfile);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
       setError('Не удалось сохранить профиль.');
@@ -53,13 +69,27 @@ export default function ProfileScreen() {
     }
   }
 
+  function handleProfileChange(field: keyof UserProfile, value: string) {
+    setProfile((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+
+  function handleReset() {
+    setProfile(persistedProfile);
+    setError(null);
+  }
+
   return (
     <ProfileCard
       profile={profile}
       loading={loading}
       error={error}
       saving={saving}
-      onEdit={handleSave}
+      onSave={handleSave}
+      onProfileChange={handleProfileChange}
+      onReset={handleReset}
     />
   );
 }

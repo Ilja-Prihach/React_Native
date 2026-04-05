@@ -1,7 +1,21 @@
 import { StyleSheet, Text, View, Image, Pressable, ActivityIndicator } from 'react-native';
+import ProfileForm from './ProfileForm';
 import type { ProfileCardProps } from '../types';
 
-export default function ProfileCard({ profile, loading, error, saving, onEdit }: ProfileCardProps) {
+type EditableProfileCardProps = ProfileCardProps & {
+  onProfileChange: (field: 'name' | 'bio' | 'avatarUrl', value: string) => void;
+  onReset: () => void;
+};
+
+export default function ProfileCard({
+  profile,
+  loading,
+  error,
+  saving,
+  onSave,
+  onProfileChange,
+  onReset,
+}: EditableProfileCardProps) {
   if (loading) {
     return (
       <View style={styles.container}>
@@ -16,6 +30,17 @@ export default function ProfileCard({ profile, loading, error, saving, onEdit }:
       <View style={styles.card}>
         <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
 
+        <ProfileForm
+          initialProfile={profile}
+          onSave={(nextProfile) => {
+            onProfileChange('name', nextProfile.name);
+            onProfileChange('bio', nextProfile.bio);
+            onProfileChange('avatarUrl', nextProfile.avatarUrl);
+          }}
+          onCancel={onReset}
+        />
+
+        <Text style={styles.previewTitle}>Предпросмотр</Text>
         <Text style={styles.name}>{profile.name}</Text>
         <Text style={styles.bio}>{profile.bio}</Text>
 
@@ -26,7 +51,7 @@ export default function ProfileCard({ profile, loading, error, saving, onEdit }:
             styles.button,
             (pressed || saving) && styles.buttonPressed,
           ]}
-          onPress={onEdit}
+          onPress={onSave}
           disabled={saving}
         >
           {saving ? (
@@ -69,6 +94,15 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  previewTitle: {
+    alignSelf: 'flex-start',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: '#6f6f6f',
     marginBottom: 8,
   },
   bio: {
