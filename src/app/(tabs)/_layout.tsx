@@ -38,6 +38,12 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="examples/render-flatlist"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="details/[id]"
         options={{
           href: null,

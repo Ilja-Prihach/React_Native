@@ -3,7 +3,7 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HapticPressable from '@/components/HapticPressable';
 import { demoItems } from '@/data/demoItems';
-import { demoItemHref, loginHref, profileHref, searchHref } from '@/navigation/routes';
+import { demoItemHref, isExampleDemoItem, loginHref, profileHref, searchHref } from '@/navigation/routes';
 import type { DemoItem } from '@/types';
 
 export default function HomeScreen() {
@@ -15,9 +15,7 @@ export default function HomeScreen() {
       <Text style={styles.category}>{item.category}</Text>
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.summary}>{item.summary}</Text>
-      <Text style={styles.cta}>
-        {item.id === 'expo-router' || item.id === 'async-storage' ? 'Открыть пример' : 'Открыть детали'}
-      </Text>
+      <Text style={styles.cta}>{isExampleDemoItem(item.id) ? 'Открыть пример' : 'Открыть детали'}</Text>
     </HapticPressable>
   );
 
