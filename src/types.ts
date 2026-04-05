@@ -6,6 +6,9 @@ export type UserProfile = {
 
 export type ProfileCardProps = {
   profile: UserProfile;
+  loading: boolean;
+  error: string | null;
+  saving: boolean;
   onEdit: () => void;
 };
 
@@ -13,4 +16,11 @@ export type ProfileFormProps = {
   initialProfile: UserProfile;
   onSave: (profile: UserProfile) => void;
   onCancel: () => void;
+};
+
+export type DemoItem = {
+  id: string;
+  title: string;
+  category: string;
+  summary: string;
 };

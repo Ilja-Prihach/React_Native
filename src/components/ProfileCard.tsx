@@ -1,7 +1,16 @@
-import { StyleSheet, Text, View, Image, Pressable } from 'react-native';
+import { StyleSheet, Text, View, Image, Pressable, ActivityIndicator } from 'react-native';
 import type { ProfileCardProps } from '../types';
 
-export default function ProfileCard({ profile, onEdit }: ProfileCardProps) {
+export default function ProfileCard({ profile, loading, error, saving, onEdit }: ProfileCardProps) {
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.statusText}>Загрузка профиля...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -10,11 +19,21 @@ export default function ProfileCard({ profile, onEdit }: ProfileCardProps) {
         <Text style={styles.name}>{profile.name}</Text>
         <Text style={styles.bio}>{profile.bio}</Text>
 
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
         <Pressable
-          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.button,
+            (pressed || saving) && styles.buttonPressed,
+          ]}
           onPress={onEdit}
+          disabled={saving}
         >
-          <Text style={styles.buttonText}>Save</Text>
+          {saving ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Сохранить</Text>
+          )}
         </Pressable>
       </View>
     </View>
@@ -59,11 +78,25 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 24,
   },
+  errorText: {
+    color: '#d00',
+    fontSize: 14,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  statusText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#666',
+  },
   button: {
     backgroundColor: '#007AFF',
     paddingVertical: 12,
     paddingHorizontal: 48,
     borderRadius: 10,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonPressed: {
     backgroundColor: '#005EC4',
