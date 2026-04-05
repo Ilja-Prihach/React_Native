@@ -3,19 +3,19 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HapticPressable from '@/components/HapticPressable';
 import { demoItems } from '@/data/demoItems';
-import { detailsHref, loginHref, profileHref, searchHref } from '@/navigation/routes';
+import { demoItemHref, loginHref, profileHref, searchHref } from '@/navigation/routes';
 import type { DemoItem } from '@/types';
 
 export default function HomeScreen() {
   const renderItem = ({ item }: { item: DemoItem }) => (
     <HapticPressable
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-      onPress={() => router.push(detailsHref(item.id))}
+      onPress={() => router.push(demoItemHref(item.id))}
     >
       <Text style={styles.category}>{item.category}</Text>
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.summary}>{item.summary}</Text>
-      <Text style={styles.cta}>Открыть детали</Text>
+      <Text style={styles.cta}>{item.id === 'expo-router' ? 'Открыть пример' : 'Открыть детали'}</Text>
     </HapticPressable>
   );
 
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   },
   pill: {
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 5,
     borderRadius: 999,
     backgroundColor: '#fffaf4',
     borderWidth: 1,
