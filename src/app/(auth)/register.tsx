@@ -1,18 +1,104 @@
 import { Link } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { homeHref, loginHref } from '@/navigation/routes';
 
+type RegisterFormState = {
+  name: string;
+  email: string;
+  password: string;
+};
+
 export default function RegisterScreen() {
+  const [form, setForm] = useState<RegisterFormState>({
+    name: '',
+    email: '',
+    password: '',
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  function handleChange<K extends keyof RegisterFormState>(field: K, value: RegisterFormState[K]) {
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+
+  function handleSubmit() {
+    const name = form.name.trim();
+    const email = form.email.trim();
+    const password = form.password.trim();
+
+    if (!name || !email || !password) {
+      setError('Заполните имя, email и пароль.');
+      setSuccessMessage(null);
+      return;
+    }
+
+    if (name.length < 2) {
+      setError('Имя должно содержать минимум 2 символа.');
+      setSuccessMessage(null);
+      return;
+    }
+
+    if (!email.includes('@')) {
+      setError('Укажите корректный email.');
+      setSuccessMessage(null);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Пароль должен содержать минимум 6 символов.');
+      setSuccessMessage(null);
+      return;
+    }
+
+    setError(null);
+    setSuccessMessage(`Аккаунт для ${name} готов к созданию.`);
+  }
+
   return (
     <View style={styles.screen}>
       <View style={styles.card}>
         <Text style={styles.eyebrow}>Доступ</Text>
         <Text style={styles.title}>Регистрация</Text>
         <Text style={styles.description}>
-          Экран регистрации находится в том же auth-навигаторе, что изолирует весь поток авторизации.
+          Минимальная форма регистрации с typed state и базовой проверкой перед отправкой.
         </Text>
 
-        <Pressable style={styles.primaryButton}>
+        <TextInput
+          value={form.name}
+          onChangeText={(value) => handleChange('name', value)}
+          placeholder="Имя"
+          placeholderTextColor="#9b8d82"
+          style={styles.input}
+        />
+
+        <TextInput
+          value={form.email}
+          onChangeText={(value) => handleChange('email', value)}
+          placeholder="Email"
+          placeholderTextColor="#9b8d82"
+          style={styles.input}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+        />
+
+        <TextInput
+          value={form.password}
+          onChangeText={(value) => handleChange('password', value)}
+          placeholder="Пароль"
+          placeholderTextColor="#9b8d82"
+          style={styles.input}
+          secureTextEntry
+        />
+
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
+
+        <Pressable style={styles.primaryButton} onPress={handleSubmit}>
           <Text style={styles.primaryButtonText}>Создать аккаунт</Text>
         </Pressable>
 
@@ -59,6 +145,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: '#5f5248',
+  },
+  input: {
+    minHeight: 52,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#dfcdb9',
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: '#1f1a17',
+  },
+  errorText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#b13b2e',
+  },
+  successText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#2f7a45',
   },
   primaryButton: {
     marginTop: 6,
