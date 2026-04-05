@@ -10,6 +10,7 @@ export const expoRouterBasicsHref = '/examples/expo-router-basics' satisfies Hre
 export const asyncStorageDraftHref = '/examples/async-storage-draft' satisfies Href;
 export const savedProfilesHref = '/examples/saved-profiles' satisfies Href;
 export const renderFlatListHref = '/examples/render-flatlist' satisfies Href;
+export const nativeFeedbackHref = '/examples/native-feedback' satisfies Href;
 
 export function detailsHref(id: DemoItem['id']) {
   return {
@@ -31,11 +32,20 @@ export function demoItemHref(id: DemoItem['id']) {
     return renderFlatListHref;
   }
 
+  if (id === 'native-feedback') {
+    return nativeFeedbackHref;
+  }
+
   return detailsHref(id);
 }
 
 export function isExampleDemoItem(id: DemoItem['id']) {
-  return id === 'expo-router' || id === 'async-storage' || id === 'flatlist-performance';
+  return (
+    id === 'expo-router' ||
+    id === 'async-storage' ||
+    id === 'flatlist-performance' ||
+    id === 'native-feedback'
+  );
 }
 
 export function savedProfilesRefreshHref(refreshToken: string) {

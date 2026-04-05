@@ -44,6 +44,12 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="examples/native-feedback"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="details/[id]"
         options={{
           href: null,
