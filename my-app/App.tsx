@@ -1,20 +1,20 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import ProfileCard from './components/ProfileCard';
+
+const sampleProfile = {
+  name: 'Ilja Prihach',
+  bio: 'React Native developer learning TypeScript and Expo. Building cool apps one step at a time.',
+  avatarUrl: 'https://i.pravatar.cc/300',
+};
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+    <>
+      <ProfileCard
+        profile={sampleProfile}
+        onEdit={() => console.log('Save pressed')}
+      />
       <StatusBar style="auto" />
-    </View>
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
