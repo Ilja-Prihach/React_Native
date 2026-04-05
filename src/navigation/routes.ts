@@ -6,12 +6,27 @@ export const searchHref = '/search' satisfies Href;
 export const profileHref = '/profile' satisfies Href;
 export const loginHref = '/login' satisfies Href;
 export const registerHref = '/register' satisfies Href;
+export const expoRouterBasicsHref = '/examples/expo-router-basics' satisfies Href;
+export const asyncStorageDraftHref = '/examples/async-storage-draft' satisfies Href;
+export const savedProfilesHref = '/examples/saved-profiles' satisfies Href;
 
 export function detailsHref(id: DemoItem['id']) {
   return {
     pathname: '/details/[id]',
     params: { id },
   } satisfies Href;
+}
+
+export function demoItemHref(id: DemoItem['id']) {
+  if (id === 'expo-router') {
+    return expoRouterBasicsHref;
+  }
+
+  if (id === 'async-storage') {
+    return asyncStorageDraftHref;
+  }
+
+  return detailsHref(id);
 }
 
 // TypeScript must reject this because the dynamic route requires `id`,

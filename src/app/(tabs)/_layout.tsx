@@ -10,12 +10,33 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: '#fffaf4',
           borderTopColor: '#ead9c7',
+          height: 64,
+          paddingTop: 4,
+          paddingBottom: 6,
         },
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Главная' }} />
       <Tabs.Screen name="search" options={{ title: 'Поиск' }} />
       <Tabs.Screen name="profile" options={{ title: 'Профиль' }} />
+      <Tabs.Screen
+        name="examples/expo-router-basics"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="examples/async-storage-draft"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="examples/saved-profiles"
+        options={{
+          href: null,
+        }}
+      />
       <Tabs.Screen
         name="details/[id]"
         options={{
