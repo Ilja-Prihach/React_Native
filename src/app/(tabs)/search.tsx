@@ -1,6 +1,8 @@
 import { Link } from 'expo-router';
 import { useDeferredValue, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import HapticPressable from '@/components/HapticPressable';
 import { demoItems } from '@/data/demoItems';
 import { detailsHref, loginHref } from '@/navigation/routes';
 import type { DemoItem } from '@/types';
@@ -21,16 +23,16 @@ export default function SearchScreen() {
 
   const renderItem = ({ item }: { item: DemoItem }) => (
     <Link href={detailsHref(item.id)} asChild>
-      <Pressable style={({ pressed }) => [styles.resultCard, pressed && styles.resultCardPressed]}>
+      <HapticPressable style={({ pressed }) => [styles.resultCard, pressed && styles.resultCardPressed]}>
         <Text style={styles.resultCategory}>{item.category}</Text>
         <Text style={styles.resultTitle}>{item.title}</Text>
         <Text style={styles.resultSummary}>{item.summary}</Text>
-      </Pressable>
+      </HapticPressable>
     </Link>
   );
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
       <FlatList<DemoItem>
         data={filteredItems}
         keyExtractor={(item) => item.id}
@@ -72,7 +74,7 @@ export default function SearchScreen() {
           </View>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -83,6 +85,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+    paddingTop: 10,
     paddingBottom: 36,
     gap: 14,
   },

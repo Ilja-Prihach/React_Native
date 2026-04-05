@@ -1,6 +1,8 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import HapticPressable from '@/components/HapticPressable';
 import { homeHref, loginHref } from '@/navigation/routes';
 
 type RegisterFormState = {
@@ -59,7 +61,7 @@ export default function RegisterScreen() {
   }
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.card}>
         <Text style={styles.eyebrow}>Доступ</Text>
         <Text style={styles.title}>Регистрация</Text>
@@ -98,9 +100,9 @@ export default function RegisterScreen() {
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
         {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
 
-        <Pressable style={styles.primaryButton} onPress={handleSubmit}>
+        <HapticPressable style={styles.primaryButton} onPress={handleSubmit}>
           <Text style={styles.primaryButtonText}>Создать аккаунт</Text>
-        </Pressable>
+        </HapticPressable>
 
         <Link href={loginHref} style={styles.link}>
           Уже есть аккаунт?
@@ -110,7 +112,7 @@ export default function RegisterScreen() {
           На главную
         </Link>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

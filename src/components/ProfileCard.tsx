@@ -2,12 +2,13 @@ import {
   ActivityIndicator,
   Image,
   Keyboard,
-  Pressable,
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import HapticPressable from './HapticPressable';
 import ProfileForm from './ProfileForm';
 import type { ProfileCardProps } from '../types';
 
@@ -39,7 +40,7 @@ export default function ProfileCard({
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.card}>
           <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
 
@@ -69,7 +70,7 @@ export default function ProfileCard({
           {error && <Text style={styles.errorText}>{error}</Text>}
 
           {!isEditing ? (
-            <Pressable
+            <HapticPressable
               style={({ pressed }) => [
                 styles.button,
                 (pressed || saving) && styles.buttonPressed,
@@ -78,10 +79,10 @@ export default function ProfileCard({
               disabled={saving}
             >
               <Text style={styles.buttonText}>Редактировать</Text>
-            </Pressable>
+            </HapticPressable>
           ) : (
             <View style={styles.actions}>
-              <Pressable
+              <HapticPressable
                 style={({ pressed }) => [
                   styles.secondaryButton,
                   pressed && styles.secondaryButtonPressed,
@@ -90,9 +91,9 @@ export default function ProfileCard({
                 disabled={saving}
               >
                 <Text style={styles.secondaryButtonText}>Отмена</Text>
-              </Pressable>
+              </HapticPressable>
 
-              <Pressable
+              <HapticPressable
                 style={({ pressed }) => [
                   styles.button,
                   (pressed || saving) && styles.buttonPressed,
@@ -105,11 +106,11 @@ export default function ProfileCard({
                 ) : (
                   <Text style={styles.buttonText}>Сохранить</Text>
                 )}
-              </Pressable>
+              </HapticPressable>
             </View>
           )}
         </View>
-      </View>
+      </SafeAreaView>
     </TouchableWithoutFeedback>
   );
 }

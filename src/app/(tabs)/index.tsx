@@ -1,12 +1,14 @@
 import { router } from 'expo-router';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import HapticPressable from '@/components/HapticPressable';
 import { demoItems } from '@/data/demoItems';
 import { detailsHref, loginHref, profileHref, searchHref } from '@/navigation/routes';
 import type { DemoItem } from '@/types';
 
 export default function HomeScreen() {
   const renderItem = ({ item }: { item: DemoItem }) => (
-    <Pressable
+    <HapticPressable
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       onPress={() => router.push(detailsHref(item.id))}
     >
@@ -14,11 +16,11 @@ export default function HomeScreen() {
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.summary}>{item.summary}</Text>
       <Text style={styles.cta}>Открыть детали</Text>
-    </Pressable>
+    </HapticPressable>
   );
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
       <FlatList<DemoItem>
         data={demoItems}
         keyExtractor={(item) => item.id}
@@ -33,20 +35,20 @@ export default function HomeScreen() {
             </Text>
 
             <View style={styles.pills}>
-              <Pressable style={styles.pill} onPress={() => router.push(searchHref)}>
+              <HapticPressable style={styles.pill} onPress={() => router.push(searchHref)}>
                 <Text style={styles.pillText}>К поиску</Text>
-              </Pressable>
-              <Pressable style={styles.pill} onPress={() => router.push(profileHref)}>
+              </HapticPressable>
+              <HapticPressable style={styles.pill} onPress={() => router.push(profileHref)}>
                 <Text style={styles.pillText}>Профиль</Text>
-              </Pressable>
-              <Pressable style={styles.pill} onPress={() => router.push(loginHref)}>
+              </HapticPressable>
+              <HapticPressable style={styles.pill} onPress={() => router.push(loginHref)}>
                 <Text style={styles.pillText}>Авторизация</Text>
-              </Pressable>
+              </HapticPressable>
             </View>
           </View>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -57,7 +59,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 28,
+    paddingTop: 14,
     paddingBottom: 36,
     gap: 14,
   },
