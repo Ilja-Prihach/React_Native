@@ -45,6 +45,7 @@ yarn-error.*
 # IDE / Editor
 .idea/
 .vscode/
+.serena/
 *.swp
 *.swo
 *~
