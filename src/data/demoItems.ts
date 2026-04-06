@@ -25,6 +25,12 @@ export const demoItems: DemoItem[] = [
     category: 'Пользовательский опыт',
     summary: 'Сочетание тактильной отдачи, состояний нажатия и ясной визуальной иерархии для живого взаимодействия.',
   },
+  {
+    id: 'reanimated',
+    title: 'Reanimated анимации',
+    category: 'Анимации',
+    summary: 'Плавные 60 fps анимации на UI-потоке: shared values, timing, spring, layout transitions.',
+  },
 ];
 
 export function getDemoItemById(id: string) {

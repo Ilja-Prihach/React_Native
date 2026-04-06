@@ -55,6 +55,12 @@ export default function TabsLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="examples/reanimated"
+        options={{
+            href: null,
+        }}
+      />
     </Tabs>
   );
 }

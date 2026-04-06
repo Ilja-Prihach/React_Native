@@ -11,6 +11,7 @@ export const asyncStorageDraftHref = '/examples/async-storage-draft' satisfies H
 export const savedProfilesHref = '/examples/saved-profiles' satisfies Href;
 export const renderFlatListHref = '/examples/render-flatlist' satisfies Href;
 export const nativeFeedbackHref = '/examples/native-feedback' satisfies Href;
+export const reanimatedHref = '/examples/reanimated' satisfies Href;
 
 export function detailsHref(id: DemoItem['id']) {
   return {
@@ -36,6 +37,10 @@ export function demoItemHref(id: DemoItem['id']) {
     return nativeFeedbackHref;
   }
 
+  if (id === 'reanimated') {
+    return reanimatedHref;
+  }
+
   return detailsHref(id);
 }
 
@@ -44,7 +49,8 @@ export function isExampleDemoItem(id: DemoItem['id']) {
     id === 'expo-router' ||
     id === 'async-storage' ||
     id === 'flatlist-performance' ||
-    id === 'native-feedback'
+    id === 'native-feedback' ||
+    id === 'reanimated'
   );
 }
 
