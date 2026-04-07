@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import { useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
-    useSharedValue,
+    FadeIn,
+    runOnJS,
+    useAnimatedScrollHandler,
     useAnimatedStyle,
+    useSharedValue,
     withSpring,
     withTiming,
-    withRepeat,
-    withSequence,
 } from 'react-native-reanimated';
 import BackButton from '@/components/BackButton';
 
@@ -28,13 +29,29 @@ function createInitialCards(): Card[] {
     }));
 }
 
+function createCard(index: number): Card {
+    return {
+        id: Date.now() + index,
+        title: CARD_TITLES[index % CARD_TITLES.length],
+        color: COLORS[index % COLORS.length],
+    };
+}
+
 export default function ReanimatedScreen() {
     const [cards, setCards] = useState<Card[]>(createInitialCards);
+
+    const scrollY = useSharedValue(0);
 
     const translateX = useSharedValue(0);
     const translateY = useSharedValue(0);
     const rotation = useSharedValue(0);
     const scale = useSharedValue(1);
+
+    const scrollHandler = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            scrollY.value = event.contentOffset.y;
+        }
+    })
 
     const topCardStyle = useAnimatedStyle(() => {
         return {
@@ -70,7 +87,13 @@ export default function ReanimatedScreen() {
             <View style={styles.topBar}>
                 <BackButton />
             </View>
-            <View style={styles.content}>
+            <Animated.ScrollView
+                style={styles.content}
+                contentContainerStyle={styles.contentContainer}
+                onScroll={scrollHandler}
+                scrollEventThrottle={16}
+                showsVerticalScrollIndicator={false}
+            >
                 <View style={styles.hero}>
                     <Text style={styles.eyebrow}>Пример</Text>
                     <Text style={styles.title}>Reanimated анимации</Text>
@@ -90,7 +113,8 @@ export default function ReanimatedScreen() {
                         </Pressable>
                     )}
                 </View>
-            </View>
+            </Animated.ScrollView>
+
         </SafeAreaView>
     );
 }
@@ -107,6 +131,9 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
+        width: '100%',
+    },
+    contentContainer: {
         padding: 20,
         paddingTop: 8,
         paddingBottom: 36,
