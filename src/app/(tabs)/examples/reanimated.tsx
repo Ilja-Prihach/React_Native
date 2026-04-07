@@ -20,6 +20,8 @@ type Card = {
 
 const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
 const CARD_TITLES = ['Первая', 'Вторая', 'Третья', 'Четвёртая', 'Пятая'];
+const VISIBLE_CARDS = 4;
+const CARD_STACK_OFFSET = 14;
 
 function createInitialCards(): Card[] {
     return CARD_TITLES.map((title, i) => ({
@@ -52,6 +54,10 @@ export default function ReanimatedScreen() {
             scrollY.value = event.contentOffset.y;
         }
     })
+
+    const visibleCards = useMemo(() => {
+        return cards.slice(0, VISIBLE_CARDS);
+    }, [cards]);
 
     const topCardStyle = useAnimatedStyle(() => {
         return {
@@ -103,15 +109,39 @@ export default function ReanimatedScreen() {
                 </View>
 
                 <View style={styles.stackContainer}>
-                    {cards.length > 0 && (
-                        <Pressable onPress={handleSwipe}>
-                            <Animated.View
-                                style={[styles.card, { backgroundColor: cards[0].color }, topCardStyle]}
-                            >
-                                <Text style={styles.cardTitle}>{cards[0].title}</Text>
-                            </Animated.View>
-                        </Pressable>
-                    )}
+                    {visibleCards
+                        .slice()
+                        .reverse()
+                        .map((card, reversedIndex) => {
+                            const index = visibleCards.length - 1 - reversedIndex;
+                            const isTopCard = index === 0;
+
+                            return (
+                                <Pressable
+                                    key={card.id}
+                                    onPress={isTopCard ? handleSwipe : undefined}
+                                    disabled={!isTopCard}
+                                    style={styles.cardPressable}
+                                >
+                                    <Animated.View
+                                        style={[
+                                            styles.card,
+                                            {
+                                                backgroundColor: card.color,
+                                                zIndex: VISIBLE_CARDS - index,
+                                                transform: [
+                                                    { translateY: index * CARD_STACK_OFFSET },
+                                                    { scale: 1 - index * 0.05 },
+                                                ],
+                                            },
+                                            isTopCard && topCardStyle,
+                                        ]}
+                                    >
+                                        <Text style={styles.cardTitle}>{card.title}</Text>
+                                    </Animated.View>
+                                </Pressable>
+                            );
+                        })}
                 </View>
             </Animated.ScrollView>
 
@@ -155,6 +185,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
+    },
+    cardPressable: {
+        position: 'absolute',
     },
     card: {
         width: 260,
