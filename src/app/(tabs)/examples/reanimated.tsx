@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
@@ -39,7 +39,7 @@ const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
 const CARD_TITLES = ['Первая', 'Вторая', 'Третья', 'Четвёртая', 'Пятая'];
 const VISIBLE_CARDS = 4;
 const CARD_STACK_OFFSET = 14;
-const SWIPE_UP_THRESHOLD = -120;
+const SWIPE_UP_THRESHOLD = -70;
 
 function createInitialCards(): Card[] {
     return CARD_TITLES.map((title, i) => ({
@@ -183,6 +183,15 @@ export default function ReanimatedScreen() {
         return cards.slice(0, VISIBLE_CARDS);
     }, [cards]);
 
+    useEffect(() => {
+        translateX.value = 0;
+        translateY.value = 0;
+        rotation.value = 0;
+        scale.value = 1;
+        stackProgress.value = 0;
+        isSwiping.value = false;
+    }, [cards, isSwiping, rotation, scale, stackProgress, translateX, translateY]);
+
     function finishSwipe() {
         setCards((prev) => {
             const nextCards = prev.slice(1);
@@ -191,12 +200,12 @@ export default function ReanimatedScreen() {
 
         setNextCardIndex((prev) => prev + 1);
 
-        translateX.value = 0;
-        translateY.value = 0;
-        rotation.value = 0;
-        scale.value = 1;
-        stackProgress.value = 0;
-        isSwiping.value = false;
+        // translateX.value = 0;
+        // translateY.value = 0;
+        // rotation.value = 0;
+        // scale.value = 1;
+        // stackProgress.value = 0;
+        // isSwiping.value = false;
     }
 
     function resetCardPosition() {
@@ -218,15 +227,39 @@ export default function ReanimatedScreen() {
             damping: 14,
             stiffness: 120,
         });
-        translateY.value = withTiming(-520, { duration: 720 });
-        rotation.value = withTiming(18, { duration: 720 });
-        stackProgress.value = withTiming(1, { duration: 520 }, (finished) => {
+
+        stackProgress.value = withTiming(1, { duration: 420 });
+
+        rotation.value = withTiming(18, { duration: 520 });
+
+        translateY.value = withTiming(-600, { duration: 520 }, (finished) => {
             if (finished) {
                 runOnJS(finishSwipe)();
             }
         });
     }
 
+    function finishSwipeFromGesture() {
+        if (isSwiping.value) {
+            return;
+        }
+
+        isSwiping.value = true;
+
+        translateX.value = withSpring(translateX.value + 50, {
+            damping: 16,
+            stiffness: 140,
+        });
+
+        translateY.value = withTiming(-620, { duration: 460 });
+        rotation.value = withTiming(rotation.value + 8, { duration: 460 });
+
+        stackProgress.value = 1;
+
+        setTimeout(() => {
+            finishSwipe();
+        }, 460);
+    }
 
 
 
@@ -272,7 +305,7 @@ export default function ReanimatedScreen() {
                                     rotation={rotation}
                                     scale={scale}
                                     isSwiping={isSwiping}
-                                    onSwipeSuccess={handleSwipe}
+                                    onSwipeSuccess={finishSwipeFromGesture}
                                     onSwipeCancel={resetCardPosition}
                                 />
                             );
