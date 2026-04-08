@@ -1,17 +1,18 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
-    AnimatedStyle,
     FadeIn,
-    runOnJS, SharedValue,
+    runOnJS,
     useAnimatedScrollHandler,
     useAnimatedStyle,
     useSharedValue,
     withSpring,
     withTiming,
+    type SharedValue,
 } from 'react-native-reanimated';
 import BackButton from '@/components/BackButton';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 type Card = {
     id: number;
@@ -29,12 +30,16 @@ type StackCardProps = {
     translateY: SharedValue<number>;
     rotation: SharedValue<number>;
     scale: SharedValue<number>;
+    isSwiping: SharedValue<boolean>;
+    onSwipeSuccess: () => void;
+    onSwipeCancel: () => void;
 };
 
 const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
 const CARD_TITLES = ['Первая', 'Вторая', 'Третья', 'Четвёртая', 'Пятая'];
 const VISIBLE_CARDS = 4;
 const CARD_STACK_OFFSET = 14;
+const SWIPE_UP_THRESHOLD = -120;
 
 function createInitialCards(): Card[] {
     return CARD_TITLES.map((title, i) => ({
@@ -53,23 +58,63 @@ function createCard(index: number): Card {
 }
 
 function StackCard({
-                       card,
-                       index,
-                       isTopCard,
-                       onPress,
-                       stackProgress,
-                       translateX,
-                       translateY,
-                       rotation,
-                       scale,
-                   }: StackCardProps) {
+    card,
+    index,
+    isTopCard,
+    onPress,
+    stackProgress,
+    translateX,
+    translateY,
+    rotation,
+    scale,
+    isSwiping,
+    onSwipeSuccess,
+    onSwipeCancel,
+}: StackCardProps) {
+    const panGesture = Gesture.Pan()
+        .enabled(isTopCard)
+        .onUpdate((event) => {
+            if (isSwiping.value || !isTopCard) {
+                return;
+            }
+
+            const nextTranslateY = Math.min(event.translationY, 0);
+            translateY.value = nextTranslateY;
+            translateX.value = event.translationX * 0.25;
+            rotation.value = event.translationX * 0.08;
+
+            const progress = Math.min(
+                Math.abs(nextTranslateY) / Math.abs(SWIPE_UP_THRESHOLD),
+                1
+            );
+
+            stackProgress.value = progress;
+        })
+        .onEnd(() => {
+            if (!isTopCard) {
+                return;
+            }
+
+            if (translateY.value <= SWIPE_UP_THRESHOLD) {
+                runOnJS(onSwipeSuccess)();
+                return;
+            }
+
+            runOnJS(onSwipeCancel)();
+        });
+
     const cardAnimatedStyle = useAnimatedStyle(() => {
+        const baseTranslateY = index * CARD_STACK_OFFSET;
+        const nextTranslateY = Math.max(index - 1, 0) * CARD_STACK_OFFSET;
+
+        const baseScale = 1 - index * 0.05;
+        const nextScale = 1 - Math.max(index - 1, 0) * 0.05;
+
         const stackTranslateY =
-            index * CARD_STACK_OFFSET -
-            stackProgress.value * index * CARD_STACK_OFFSET;
+            baseTranslateY + (nextTranslateY - baseTranslateY) * stackProgress.value;
 
         const stackScale =
-            1 - index * 0.05 + stackProgress.value * index * 0.05;
+            baseScale + (nextScale - baseScale) * stackProgress.value;
 
         return {
             zIndex: VISIBLE_CARDS - index,
@@ -86,7 +131,7 @@ function StackCard({
         };
     });
 
-    return (
+    const cardContent = (
         <Pressable
             onPress={isTopCard ? onPress : undefined}
             disabled={!isTopCard}
@@ -104,7 +149,15 @@ function StackCard({
             </Animated.View>
         </Pressable>
     );
+
+    return (
+        <GestureDetector gesture={panGesture}>
+            {cardContent}
+        </GestureDetector>
+    );
 }
+
+
 
 
 export default function ReanimatedScreen() {
@@ -118,6 +171,7 @@ export default function ReanimatedScreen() {
     const translateY = useSharedValue(0);
     const rotation = useSharedValue(0);
     const scale = useSharedValue(1);
+    const isSwiping = useSharedValue(false);
 
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
@@ -129,11 +183,11 @@ export default function ReanimatedScreen() {
         return cards.slice(0, VISIBLE_CARDS);
     }, [cards]);
 
-    function finishSwipe(){
+    function finishSwipe() {
         setCards((prev) => {
             const nextCards = prev.slice(1);
             return [...nextCards, createCard(nextCardIndex)];
-        })
+        });
 
         setNextCardIndex((prev) => prev + 1);
 
@@ -142,9 +196,24 @@ export default function ReanimatedScreen() {
         rotation.value = 0;
         scale.value = 1;
         stackProgress.value = 0;
+        isSwiping.value = false;
+    }
+
+    function resetCardPosition() {
+        translateX.value = withSpring(0);
+        translateY.value = withSpring(0);
+        rotation.value = withSpring(0);
+        stackProgress.value = withSpring(0);
+        isSwiping.value = false;
     }
 
     function handleSwipe() {
+        if (isSwiping.value) {
+            return;
+        }
+
+        isSwiping.value = true;
+
         translateX.value = withSpring(120, {
             damping: 14,
             stiffness: 120,
@@ -158,6 +227,9 @@ export default function ReanimatedScreen() {
         });
     }
 
+
+
+
     return (
         <SafeAreaView style={styles.screen} edges={['top']}>
             <View style={styles.topBar}>
@@ -169,6 +241,7 @@ export default function ReanimatedScreen() {
                 onScroll={scrollHandler}
                 scrollEventThrottle={16}
                 showsVerticalScrollIndicator={false}
+                scrollEnabled={false}
             >
                 <View style={styles.hero}>
                     <Text style={styles.eyebrow}>Пример</Text>
@@ -198,6 +271,9 @@ export default function ReanimatedScreen() {
                                     translateY={translateY}
                                     rotation={rotation}
                                     scale={scale}
+                                    isSwiping={isSwiping}
+                                    onSwipeSuccess={handleSwipe}
+                                    onSwipeCancel={resetCardPosition}
                                 />
                             );
                         })}
