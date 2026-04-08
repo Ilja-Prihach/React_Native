@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
+    AnimatedStyle,
     FadeIn,
-    runOnJS,
+    runOnJS, SharedValue,
     useAnimatedScrollHandler,
     useAnimatedStyle,
     useSharedValue,
@@ -16,6 +17,18 @@ type Card = {
     id: number;
     title: string;
     color: string;
+};
+
+type StackCardProps = {
+    card: Card;
+    index: number;
+    isTopCard: boolean;
+    onPress: () => void;
+    stackProgress: SharedValue<number>;
+    translateX: SharedValue<number>;
+    translateY: SharedValue<number>;
+    rotation: SharedValue<number>;
+    scale: SharedValue<number>;
 };
 
 const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
@@ -39,6 +52,61 @@ function createCard(index: number): Card {
     };
 }
 
+function StackCard({
+                       card,
+                       index,
+                       isTopCard,
+                       onPress,
+                       stackProgress,
+                       translateX,
+                       translateY,
+                       rotation,
+                       scale,
+                   }: StackCardProps) {
+    const cardAnimatedStyle = useAnimatedStyle(() => {
+        const stackTranslateY =
+            index * CARD_STACK_OFFSET -
+            stackProgress.value * index * CARD_STACK_OFFSET;
+
+        const stackScale =
+            1 - index * 0.05 + stackProgress.value * index * 0.05;
+
+        return {
+            zIndex: VISIBLE_CARDS - index,
+            transform: [
+                { translateX: isTopCard ? translateX.value : 0 },
+                {
+                    translateY: isTopCard
+                        ? stackTranslateY + translateY.value
+                        : stackTranslateY,
+                },
+                { rotateZ: isTopCard ? `${rotation.value}deg` : '0deg' },
+                { scale: isTopCard ? stackScale * scale.value : stackScale },
+            ],
+        };
+    });
+
+    return (
+        <Pressable
+            onPress={isTopCard ? onPress : undefined}
+            disabled={!isTopCard}
+            style={styles.cardPressable}
+        >
+            <Animated.View
+                entering={FadeIn.springify()}
+                style={[
+                    styles.card,
+                    { backgroundColor: card.color },
+                    cardAnimatedStyle,
+                ]}
+            >
+                <Text style={styles.cardTitle}>{card.title}</Text>
+            </Animated.View>
+        </Pressable>
+    );
+}
+
+
 export default function ReanimatedScreen() {
     const [cards, setCards] = useState<Card[]>(createInitialCards);
     const [nextCardIndex, setNextCardIndex] = useState(CARD_TITLES.length);
@@ -60,17 +128,6 @@ export default function ReanimatedScreen() {
     const visibleCards = useMemo(() => {
         return cards.slice(0, VISIBLE_CARDS);
     }, [cards]);
-
-    const topCardStyle = useAnimatedStyle(() => {
-        return {
-            transform: [
-                { translateX: translateX.value },
-                { translateY: translateY.value },
-                { rotateZ: `${rotation.value}deg` },
-                { scale: scale.value },
-            ],
-        };
-    });
 
     function finishSwipe(){
         setCards((prev) => {
@@ -130,36 +187,18 @@ export default function ReanimatedScreen() {
                             const isTopCard = index === 0;
 
                             return (
-                                <Pressable
+                                <StackCard
                                     key={card.id}
-                                    onPress={isTopCard ? handleSwipe : undefined}
-                                    disabled={!isTopCard}
-                                    style={styles.cardPressable}
-                                >
-                                    <Animated.View
-                                        entering={FadeIn.springify()}
-                                        style={[
-                                            styles.card,
-                                            {
-                                                backgroundColor: card.color,
-                                                zIndex: VISIBLE_CARDS - index,
-                                                transform: [
-                                                    {
-                                                        translateY:
-                                                            index * CARD_STACK_OFFSET - stackProgress.value * index * CARD_STACK_OFFSET,
-                                                    },
-                                                    {
-                                                        scale:
-                                                            1 - index * 0.05 + stackProgress.value * index * 0.05,
-                                                    },
-                                                ],
-                                            },
-                                            isTopCard && topCardStyle,
-                                        ]}
-                                    >
-                                        <Text style={styles.cardTitle}>{card.title}</Text>
-                                    </Animated.View>
-                                </Pressable>
+                                    card={card}
+                                    index={index}
+                                    isTopCard={isTopCard}
+                                    onPress={handleSwipe}
+                                    stackProgress={stackProgress}
+                                    translateX={translateX}
+                                    translateY={translateY}
+                                    rotation={rotation}
+                                    scale={scale}
+                                />
                             );
                         })}
                 </View>
