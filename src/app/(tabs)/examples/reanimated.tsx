@@ -41,6 +41,7 @@ function createCard(index: number): Card {
 
 export default function ReanimatedScreen() {
     const [cards, setCards] = useState<Card[]>(createInitialCards);
+    const [nextCardIndex, setNextCardIndex] = useState(CARD_TITLES.length);
 
     const scrollY = useSharedValue(0);
     const stackProgress = useSharedValue(0);
@@ -74,8 +75,11 @@ export default function ReanimatedScreen() {
     function finishSwipe(){
         setCards((prev) => {
             const nextCards = prev.slice(1);
-            return nextCards.length > 0 ? nextCards : createInitialCards();
+            return [...nextCards, createCard(nextCardIndex)];
         })
+
+        setNextCardIndex((prev) => prev + 1);
+
         translateX.value = 0;
         translateY.value = 0;
         rotation.value = 0;
@@ -133,6 +137,7 @@ export default function ReanimatedScreen() {
                                     style={styles.cardPressable}
                                 >
                                     <Animated.View
+                                        entering={FadeIn.springify()}
                                         style={[
                                             styles.card,
                                             {
