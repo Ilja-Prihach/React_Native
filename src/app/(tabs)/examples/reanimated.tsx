@@ -43,6 +43,7 @@ export default function ReanimatedScreen() {
     const [cards, setCards] = useState<Card[]>(createInitialCards);
 
     const scrollY = useSharedValue(0);
+    const stackProgress = useSharedValue(0);
 
     const translateX = useSharedValue(0);
     const translateY = useSharedValue(0);
@@ -70,22 +71,30 @@ export default function ReanimatedScreen() {
         };
     });
 
+    function finishSwipe(){
+        setCards((prev) => {
+            const nextCards = prev.slice(1);
+            return nextCards.length > 0 ? nextCards : createInitialCards();
+        })
+        translateX.value = 0;
+        translateY.value = 0;
+        rotation.value = 0;
+        scale.value = 1;
+        stackProgress.value = 0;
+    }
+
     function handleSwipe() {
-        translateX.value = withSpring(200);
-        translateY.value = withTiming(-600, { duration: 500 });
-        rotation.value = withTiming(15, { duration: 500 });
-
-        setTimeout(() => {
-            setCards((prev) => {
-                const nextCards = prev.slice(1);
-                return nextCards.length > 0 ? nextCards : createInitialCards();
-            });
-
-            translateX.value = 0;
-            translateY.value = 0;
-            rotation.value = 0;
-            scale.value = 1;
-        }, 550);
+        translateX.value = withSpring(120, {
+            damping: 14,
+            stiffness: 120,
+        });
+        translateY.value = withTiming(-520, { duration: 720 });
+        rotation.value = withTiming(18, { duration: 720 });
+        stackProgress.value = withTiming(1, { duration: 520 }, (finished) => {
+            if (finished) {
+                runOnJS(finishSwipe)();
+            }
+        });
     }
 
     return (
@@ -130,8 +139,14 @@ export default function ReanimatedScreen() {
                                                 backgroundColor: card.color,
                                                 zIndex: VISIBLE_CARDS - index,
                                                 transform: [
-                                                    { translateY: index * CARD_STACK_OFFSET },
-                                                    { scale: 1 - index * 0.05 },
+                                                    {
+                                                        translateY:
+                                                            index * CARD_STACK_OFFSET - stackProgress.value * index * CARD_STACK_OFFSET,
+                                                    },
+                                                    {
+                                                        scale:
+                                                            1 - index * 0.05 + stackProgress.value * index * 0.05,
+                                                    },
                                                 ],
                                             },
                                             isTopCard && topCardStyle,
