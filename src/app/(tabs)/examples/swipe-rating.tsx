@@ -7,7 +7,9 @@ import Animated, {
     runOnJS,
     useAnimatedStyle,
     useSharedValue,
+    withSequence,
     withSpring,
+    withTiming,
     type SharedValue,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -35,7 +37,7 @@ type StackCardProps = {
 };
 
 
-const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
+const COLORS = ['#dc0c0c', '#16e7d8', '#154af5', '#31e316', '#FFEAA7'];
 const CARD_TITLES = ['Первая', 'Вторая', 'Третья', 'Четвёртая', 'Пятая'];
 
 const VISIBLE_CARDS = 4;
@@ -131,6 +133,34 @@ function StackCard({
         };
     });
 
+    const likeBadgeStyle = useAnimatedStyle(() => {
+        const opacity = isTopCard
+            ? Math.min(Math.max(translateX.value / SWIPE_X_THRESHOLD, 0), 1)
+            : 0;
+
+        return {
+            opacity,
+            transform: [
+                { scale: 0.75 + opacity * 0.4 },
+                { rotateZ: '-10deg' },
+            ],
+        };
+    });
+
+    const dislikeBadgeStyle = useAnimatedStyle(() => {
+        const opacity = isTopCard
+            ? Math.min(Math.max(-translateX.value / SWIPE_X_THRESHOLD, 0), 1)
+            : 0;
+
+        return {
+            opacity,
+            transform: [
+                { scale: 0.75 + opacity * 0.4 },
+                { rotateZ: '10deg' },
+            ],
+        };
+    });
+
     const cardContent = (
         <Pressable
             onPress={isTopCard ? onPress : undefined}
@@ -145,6 +175,14 @@ function StackCard({
                     cardAnimatedStyle,
                 ]}
             >
+                <Animated.View style={[styles.badge, styles.likeBadge, likeBadgeStyle]}>
+                    <Text style={[styles.badgeText, styles.likeBadgeText]}>LIKE</Text>
+                </Animated.View>
+
+                <Animated.View style={[styles.badge, styles.dislikeBadge, dislikeBadgeStyle]}>
+                    <Text style={[styles.badgeText, styles.dislikeBadgeText]}>NOPE</Text>
+                </Animated.View>
+
                 <Text style={styles.cardTitle}>{card.title}</Text>
             </Animated.View>
         </Pressable>
@@ -170,6 +208,8 @@ export default function SwipeRatingScreen() {
     const rotation = useSharedValue(0);
     const scale = useSharedValue(1);
     const isSwiping = useSharedValue(false);
+    const likeIconScale = useSharedValue(1);
+    const dislikeIconScale = useSharedValue(1);
 
     const visibleCards = useMemo(() => {
         return cards.slice(0, VISIBLE_CARDS);
@@ -183,6 +223,18 @@ export default function SwipeRatingScreen() {
 
         setNextCardIndex((prev) => prev + 1);
     }
+
+    const likeIconStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ scale: likeIconScale.value }],
+        };
+    });
+
+    const dislikeIconStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ scale: dislikeIconScale.value }],
+        };
+    });
 
     useEffect(() => {
         translateX.value = 0;
@@ -209,6 +261,7 @@ export default function SwipeRatingScreen() {
 
         isSwiping.value = true;
         setLikesCount((prev) => prev + 1);
+        animateLikeIcon();
 
         translateX.value = withSpring(translateX.value + 220, {
             damping: 16,
@@ -234,6 +287,7 @@ export default function SwipeRatingScreen() {
 
         isSwiping.value = true;
         setDislikesCount((prev) => prev + 1);
+        animateDislikeIcon();
 
         translateX.value = withSpring(translateX.value - 220, {
             damping: 16,
@@ -250,6 +304,20 @@ export default function SwipeRatingScreen() {
         setTimeout(() => {
             finishSwipe();
         }, 280);
+    }
+
+    function animateLikeIcon() {
+        likeIconScale.value = withSequence(
+            withTiming(1.5, { duration: 190 }),
+            withTiming(1, { duration: 220 })
+        );
+    }
+
+    function animateDislikeIcon() {
+        dislikeIconScale.value = withSequence(
+            withTiming(1.5, { duration: 190 }),
+            withTiming(1, { duration: 220 })
+        );
     }
 
     function resetCardPosition() {
@@ -323,7 +391,7 @@ export default function SwipeRatingScreen() {
 
                 <View style={styles.footer}>
                     <View style={styles.counterBlock}>
-                        <Text style={styles.counterIcon}>👎</Text>
+                        <Animated.Text style={[styles.counterIcon, dislikeIconStyle]}>👎</Animated.Text>
                         <Text style={styles.counterValue}>{dislikesCount}</Text>
                     </View>
 
@@ -332,7 +400,7 @@ export default function SwipeRatingScreen() {
                     </Pressable>
 
                     <View style={styles.counterBlock}>
-                        <Text style={styles.counterIcon}>👍</Text>
+                        <Animated.Text style={[styles.counterIcon, likeIconStyle]}>👍</Animated.Text>
                         <Text style={styles.counterValue}>{likesCount}</Text>
                     </View>
                 </View>
@@ -392,6 +460,34 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontWeight: '800',
         color: '#fff',
+    },
+    badge: {
+        position: 'absolute',
+        top: 28,
+        borderWidth: 3,
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 6,
+        backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    },
+    likeBadge: {
+        left: 24,
+        borderColor: '#22c55e',
+    },
+    dislikeBadge: {
+        right: 24,
+        borderColor: '#ef4444',
+    },
+    badgeText: {
+        fontSize: 22,
+        fontWeight: '900',
+        letterSpacing: 1,
+    },
+    likeBadgeText: {
+        color: '#22c55e',
+    },
+    dislikeBadgeText: {
+        color: '#ef4444',
     },
     eyebrow: {
         fontSize: 12,
