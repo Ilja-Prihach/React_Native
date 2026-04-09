@@ -2,7 +2,15 @@ import {useMemo, useState} from "react";
 import {Pressable, StyleSheet, Text, View} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import BackButton from "@/components/BackButton";
-import Animated, {FadeIn, SharedValue, useAnimatedStyle, useSharedValue} from "react-native-reanimated";
+import Animated, {
+    FadeIn,
+    runOnJS,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+    type SharedValue,
+} from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 
 type Card = {
@@ -20,9 +28,14 @@ type StackCardProps = {
     translateY: SharedValue<number>;
     rotation: SharedValue<number>;
     scale: SharedValue<number>;
+    isSwiping: SharedValue<boolean>;
+    onSwipeRight: () => void;
+    onSwipeLeft: () => void;
+    onSwipeCancel: () => void;
 };
 
-const COLORS = ['#d00f0f', '#14d9cd', '#0f42ee', '#94d023', '#FFEAA7'];
+
+const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
 const CARD_TITLES = ['Первая', 'Вторая', 'Третья', 'Четвёртая', 'Пятая'];
 
 const VISIBLE_CARDS = 4;
@@ -55,7 +68,38 @@ function StackCard({
                        translateY,
                        rotation,
                        scale,
+                       isSwiping,
+                       onSwipeRight,
+                       onSwipeLeft,
+                       onSwipeCancel,
                    }: StackCardProps) {
+    const panGesture = Gesture.Pan()
+        .enabled(isTopCard)
+        .onUpdate((event) => {
+            if (isSwiping.value || !isTopCard) {
+                return;
+            }
+
+            translateX.value = event.translationX;
+            rotation.value = event.translationX * 0.08;
+        })
+        .onEnd(() => {
+            if (!isTopCard) {
+                return;
+            }
+
+            if (translateX.value >= SWIPE_X_THRESHOLD) {
+                runOnJS(onSwipeRight)();
+                return;
+            }
+
+            if (translateX.value <= -SWIPE_X_THRESHOLD) {
+                runOnJS(onSwipeLeft)();
+                return;
+            }
+
+            runOnJS(onSwipeCancel)();
+        });
     const cardAnimatedStyle = useAnimatedStyle(() => {
         const baseTranslateY = index * CARD_STACK_OFFSET;
         const baseScale = 1 - index * 0.05;
@@ -71,7 +115,7 @@ function StackCard({
         };
     });
 
-    return (
+    const cardContent = (
         <Pressable
             onPress={isTopCard ? onPress : undefined}
             disabled={!isTopCard}
@@ -88,6 +132,12 @@ function StackCard({
                 <Text style={styles.cardTitle}>{card.title}</Text>
             </Animated.View>
         </Pressable>
+    );
+
+    return (
+        <GestureDetector gesture={panGesture}>
+            {cardContent}
+        </GestureDetector>
     );
 }
 
@@ -118,9 +168,24 @@ export default function SwipeRatingScreen() {
         console.log('Top card pressed');
     }
 
+    function handleSwipeRight() {
+        console.log('Swipe right');
+    }
+
+    function handleSwipeLeft() {
+        console.log('Swipe left');
+    }
+
+    function resetCardPosition() {
+        translateX.value = withSpring(0);
+        translateY.value = withSpring(0);
+        rotation.value = withSpring(0);
+        stackProgress.value = withSpring(0);
+    }
+
 
     return (
-        <SafeAreaView style={styles.screen} edges={['top']}>
+        <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
             <View style={styles.topBar}>
                 <BackButton />
             </View>
@@ -154,6 +219,10 @@ export default function SwipeRatingScreen() {
                                     translateY={translateY}
                                     rotation={rotation}
                                     scale={scale}
+                                    isSwiping={isSwiping}
+                                    onSwipeRight={handleSwipeRight}
+                                    onSwipeLeft={handleSwipeLeft}
+                                    onSwipeCancel={resetCardPosition}
                                 />
                             );
                         })}
@@ -190,9 +259,10 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        padding: 20,
+        width: '100%',
+        paddingHorizontal: 20,
         paddingTop: 8,
-        paddingBottom: 36,
+        paddingBottom: 20,
         gap: 18,
         alignItems: 'center',
     },
@@ -206,8 +276,9 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     stackContainer: {
+        flex: 1,
         width: '100%',
-        height: 420,
+        minHeight: 360,
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
@@ -218,7 +289,6 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        position: 'absolute',
         elevation: 6,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
@@ -253,6 +323,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: 16,
+        paddingBottom: 12,
     },
     counterBlock: {
         flex: 1,
