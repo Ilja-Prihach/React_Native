@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import { useEffect, useMemo, useState } from 'react';
 import {Pressable, StyleSheet, Text, View} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import BackButton from "@/components/BackButton";
@@ -175,6 +175,24 @@ export default function SwipeRatingScreen() {
         return cards.slice(0, VISIBLE_CARDS);
     }, [cards]);
 
+    function finishSwipe() {
+        setCards((prev) => {
+            const nextCards = prev.slice(1);
+            return [...nextCards, createCard(nextCardIndex)];
+        });
+
+        setNextCardIndex((prev) => prev + 1);
+    }
+
+    useEffect(() => {
+        translateX.value = 0;
+        translateY.value = 0;
+        rotation.value = 0;
+        scale.value = 1;
+        stackProgress.value = 0;
+        isSwiping.value = false;
+    }, [cards, isSwiping, rotation, scale, stackProgress, translateX, translateY]);
+
     function handleResetCounters() {
         setLikesCount(0);
         setDislikesCount(0);
@@ -185,13 +203,53 @@ export default function SwipeRatingScreen() {
     }
 
     function handleSwipeRight() {
+        if (isSwiping.value) {
+            return;
+        }
+
         isSwiping.value = true;
-        console.log('Swipe right');
+        setLikesCount((prev) => prev + 1);
+
+        translateX.value = withSpring(translateX.value + 220, {
+            damping: 16,
+            stiffness: 140,
+        });
+
+        rotation.value = withSpring(rotation.value + 12, {
+            damping: 16,
+            stiffness: 140,
+        });
+
+        stackProgress.value = 1;
+
+        setTimeout(() => {
+            finishSwipe();
+        }, 280);
     }
 
     function handleSwipeLeft() {
+        if (isSwiping.value) {
+            return;
+        }
+
         isSwiping.value = true;
-        console.log('Swipe left');
+        setDislikesCount((prev) => prev + 1);
+
+        translateX.value = withSpring(translateX.value - 220, {
+            damping: 16,
+            stiffness: 140,
+        });
+
+        rotation.value = withSpring(rotation.value - 12, {
+            damping: 16,
+            stiffness: 140,
+        });
+
+        stackProgress.value = 1;
+
+        setTimeout(() => {
+            finishSwipe();
+        }, 280);
     }
 
     function resetCardPosition() {
@@ -204,6 +262,10 @@ export default function SwipeRatingScreen() {
             stiffness: 140,
         });
         rotation.value = withSpring(0, {
+            damping: 15,
+            stiffness: 140,
+        });
+        scale.value = withSpring(1, {
             damping: 15,
             stiffness: 140,
         });
