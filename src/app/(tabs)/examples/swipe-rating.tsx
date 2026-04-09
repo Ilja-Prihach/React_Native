@@ -82,6 +82,13 @@ function StackCard({
 
             translateX.value = event.translationX;
             rotation.value = event.translationX * 0.08;
+
+            const progress = Math.min(
+                Math.abs(event.translationX) / SWIPE_X_THRESHOLD,
+                1
+            );
+
+            stackProgress.value = progress;
         })
         .onEnd(() => {
             if (!isTopCard) {
@@ -102,15 +109,24 @@ function StackCard({
         });
     const cardAnimatedStyle = useAnimatedStyle(() => {
         const baseTranslateY = index * CARD_STACK_OFFSET;
+        const nextTranslateY = Math.max(index - 1, 0) * CARD_STACK_OFFSET;
+
         const baseScale = 1 - index * 0.05;
+        const nextScale = 1 - Math.max(index - 1, 0) * 0.05;
+
+        const stackTranslateY =
+            baseTranslateY + (nextTranslateY - baseTranslateY) * stackProgress.value;
+
+        const stackScale =
+            baseScale + (nextScale - baseScale) * stackProgress.value;
 
         return {
             zIndex: VISIBLE_CARDS - index,
             transform: [
                 { translateX: isTopCard ? translateX.value : 0 },
-                { translateY: isTopCard ? baseTranslateY + translateY.value : baseTranslateY },
+                { translateY: isTopCard ? stackTranslateY + translateY.value : stackTranslateY },
                 { rotateZ: isTopCard ? `${rotation.value}deg` : '0deg' },
-                { scale: isTopCard ? baseScale * scale.value : baseScale },
+                { scale: isTopCard ? stackScale * scale.value : stackScale },
             ],
         };
     });
@@ -169,18 +185,33 @@ export default function SwipeRatingScreen() {
     }
 
     function handleSwipeRight() {
+        isSwiping.value = true;
         console.log('Swipe right');
     }
 
     function handleSwipeLeft() {
+        isSwiping.value = true;
         console.log('Swipe left');
     }
 
     function resetCardPosition() {
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
-        rotation.value = withSpring(0);
-        stackProgress.value = withSpring(0);
+        translateX.value = withSpring(0, {
+            damping: 15,
+            stiffness: 140,
+        });
+        translateY.value = withSpring(0, {
+            damping: 15,
+            stiffness: 140,
+        });
+        rotation.value = withSpring(0, {
+            damping: 15,
+            stiffness: 140,
+        });
+        stackProgress.value = withSpring(0, {
+            damping: 15,
+            stiffness: 140,
+        });
+        isSwiping.value = false;
     }
 
 
