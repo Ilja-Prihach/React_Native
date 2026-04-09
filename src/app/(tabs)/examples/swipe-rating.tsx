@@ -1,200 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import {Pressable, StyleSheet, Text, View} from "react-native";
-import {SafeAreaView} from "react-native-safe-area-context";
-import BackButton from "@/components/BackButton";
-import Animated, {
-    FadeIn,
-    runOnJS,
-    useAnimatedStyle,
+import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
     useSharedValue,
     withSequence,
     withSpring,
     withTiming,
-    type SharedValue,
 } from 'react-native-reanimated';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-
-
-type Card = {
-    id: number;
-    title: string;
-    color: string;
-};
-type StackCardProps = {
-    card: Card;
-    index: number;
-    isTopCard: boolean;
-    onPress: () => void;
-    stackProgress: SharedValue<number>;
-    translateX: SharedValue<number>;
-    translateY: SharedValue<number>;
-    rotation: SharedValue<number>;
-    scale: SharedValue<number>;
-    isSwiping: SharedValue<boolean>;
-    onSwipeRight: () => void;
-    onSwipeLeft: () => void;
-    onSwipeCancel: () => void;
-};
-
-
-const COLORS = ['#dc0c0c', '#16e7d8', '#154af5', '#31e316', '#FFEAA7'];
-const CARD_TITLES = ['Первая', 'Вторая', 'Третья', 'Четвёртая', 'Пятая'];
-
-const VISIBLE_CARDS = 4;
-const CARD_STACK_OFFSET = 14;
-const SWIPE_X_THRESHOLD = 90;
-
-function createInitialCards(): Card[] {
-    return CARD_TITLES.map((title, index) => ({
-        id: Date.now() + index,
-            title,
-            color: COLORS[index % COLORS.length],
-    }))
-}
-
-function createCard(index: number): Card {
-    return {
-        id: Date.now() + index,
-        title: CARD_TITLES[index % CARD_TITLES.length],
-        color: COLORS[index % COLORS.length],
-    }
-}
-
-function StackCard({
-                       card,
-                       index,
-                       isTopCard,
-                       onPress,
-                       stackProgress,
-                       translateX,
-                       translateY,
-                       rotation,
-                       scale,
-                       isSwiping,
-                       onSwipeRight,
-                       onSwipeLeft,
-                       onSwipeCancel,
-                   }: StackCardProps) {
-    const panGesture = Gesture.Pan()
-        .enabled(isTopCard)
-        .onUpdate((event) => {
-            if (isSwiping.value || !isTopCard) {
-                return;
-            }
-
-            translateX.value = event.translationX;
-            rotation.value = event.translationX * 0.08;
-
-            const progress = Math.min(
-                Math.abs(event.translationX) / SWIPE_X_THRESHOLD,
-                1
-            );
-
-            stackProgress.value = progress;
-        })
-        .onEnd(() => {
-            if (!isTopCard) {
-                return;
-            }
-
-            if (translateX.value >= SWIPE_X_THRESHOLD) {
-                runOnJS(onSwipeRight)();
-                return;
-            }
-
-            if (translateX.value <= -SWIPE_X_THRESHOLD) {
-                runOnJS(onSwipeLeft)();
-                return;
-            }
-
-            runOnJS(onSwipeCancel)();
-        });
-    const cardAnimatedStyle = useAnimatedStyle(() => {
-        const baseTranslateY = index * CARD_STACK_OFFSET;
-        const nextTranslateY = Math.max(index - 1, 0) * CARD_STACK_OFFSET;
-
-        const baseScale = 1 - index * 0.05;
-        const nextScale = 1 - Math.max(index - 1, 0) * 0.05;
-
-        const stackTranslateY =
-            baseTranslateY + (nextTranslateY - baseTranslateY) * stackProgress.value;
-
-        const stackScale =
-            baseScale + (nextScale - baseScale) * stackProgress.value;
-
-        return {
-            zIndex: VISIBLE_CARDS - index,
-            transform: [
-                { translateX: isTopCard ? translateX.value : 0 },
-                { translateY: isTopCard ? stackTranslateY + translateY.value : stackTranslateY },
-                { rotateZ: isTopCard ? `${rotation.value}deg` : '0deg' },
-                { scale: isTopCard ? stackScale * scale.value : stackScale },
-            ],
-        };
-    });
-
-    const likeBadgeStyle = useAnimatedStyle(() => {
-        const opacity = isTopCard
-            ? Math.min(Math.max(translateX.value / SWIPE_X_THRESHOLD, 0), 1)
-            : 0;
-
-        return {
-            opacity,
-            transform: [
-                { scale: 0.75 + opacity * 0.4 },
-                { rotateZ: '-10deg' },
-            ],
-        };
-    });
-
-    const dislikeBadgeStyle = useAnimatedStyle(() => {
-        const opacity = isTopCard
-            ? Math.min(Math.max(-translateX.value / SWIPE_X_THRESHOLD, 0), 1)
-            : 0;
-
-        return {
-            opacity,
-            transform: [
-                { scale: 0.75 + opacity * 0.4 },
-                { rotateZ: '10deg' },
-            ],
-        };
-    });
-
-    const cardContent = (
-        <Pressable
-            onPress={isTopCard ? onPress : undefined}
-            disabled={!isTopCard}
-            style={styles.cardPressable}
-        >
-            <Animated.View
-                entering={FadeIn.springify()}
-                style={[
-                    styles.card,
-                    { backgroundColor: card.color },
-                    cardAnimatedStyle,
-                ]}
-            >
-                <Animated.View style={[styles.badge, styles.likeBadge, likeBadgeStyle]}>
-                    <Text style={[styles.badgeText, styles.likeBadgeText]}>LIKE</Text>
-                </Animated.View>
-
-                <Animated.View style={[styles.badge, styles.dislikeBadge, dislikeBadgeStyle]}>
-                    <Text style={[styles.badgeText, styles.dislikeBadgeText]}>NOPE</Text>
-                </Animated.View>
-
-                <Text style={styles.cardTitle}>{card.title}</Text>
-            </Animated.View>
-        </Pressable>
-    );
-
-    return (
-        <GestureDetector gesture={panGesture}>
-            {cardContent}
-        </GestureDetector>
-    );
-}
-
+import BackButton from '@/components/BackButton';
+import {
+    CARD_TITLES,
+    VISIBLE_CARDS,
+    createCard,
+    createInitialCards,
+} from './_swipe-rating/cardData';
+import SwipeCard from './_swipe-rating/SwipeCard';
+import SwipeCounters from './_swipe-rating/SwipeCounters';
+import type { Card } from './_swipe-rating/types';
 
 export default function SwipeRatingScreen() {
     const [cards, setCards] = useState<Card[]>(createInitialCards);
@@ -223,18 +45,6 @@ export default function SwipeRatingScreen() {
 
         setNextCardIndex((prev) => prev + 1);
     }
-
-    const likeIconStyle = useAnimatedStyle(() => {
-        return {
-            transform: [{ scale: likeIconScale.value }],
-        };
-    });
-
-    const dislikeIconStyle = useAnimatedStyle(() => {
-        return {
-            transform: [{ scale: dislikeIconScale.value }],
-        };
-    });
 
     useEffect(() => {
         translateX.value = 0;
@@ -369,7 +179,7 @@ export default function SwipeRatingScreen() {
                             const isTopCard = index === 0;
 
                             return (
-                                <StackCard
+                                <SwipeCard
                                     key={card.id}
                                     card={card}
                                     index={index}
@@ -389,21 +199,13 @@ export default function SwipeRatingScreen() {
                         })}
                 </View>
 
-                <View style={styles.footer}>
-                    <View style={styles.counterBlock}>
-                        <Animated.Text style={[styles.counterIcon, dislikeIconStyle]}>👎</Animated.Text>
-                        <Text style={styles.counterValue}>{dislikesCount}</Text>
-                    </View>
-
-                    <Pressable style={styles.resetButton} onPress={handleResetCounters}>
-                        <Text style={styles.resetButtonText}>Сбросить</Text>
-                    </Pressable>
-
-                    <View style={styles.counterBlock}>
-                        <Animated.Text style={[styles.counterIcon, likeIconStyle]}>👍</Animated.Text>
-                        <Text style={styles.counterValue}>{likesCount}</Text>
-                    </View>
-                </View>
+                <SwipeCounters
+                    likesCount={likesCount}
+                    dislikesCount={dislikesCount}
+                    likeIconScale={likeIconScale}
+                    dislikeIconScale={dislikeIconScale}
+                    onReset={handleResetCounters}
+                />
             </View>
         </SafeAreaView>
     );
@@ -444,51 +246,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         position: 'relative',
     },
-    card: {
-        width: 260,
-        height: 360,
-        borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        elevation: 6,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-    },
-    cardTitle: {
-        fontSize: 28,
-        fontWeight: '800',
-        color: '#fff',
-    },
-    badge: {
-        position: 'absolute',
-        top: 28,
-        borderWidth: 3,
-        borderRadius: 12,
-        paddingHorizontal: 14,
-        paddingVertical: 6,
-        backgroundColor: 'rgba(255, 255, 255, 0.88)',
-    },
-    likeBadge: {
-        left: 24,
-        borderColor: '#22c55e',
-    },
-    dislikeBadge: {
-        right: 24,
-        borderColor: '#ef4444',
-    },
-    badgeText: {
-        fontSize: 22,
-        fontWeight: '900',
-        letterSpacing: 1,
-    },
-    likeBadgeText: {
-        color: '#22c55e',
-    },
-    dislikeBadgeText: {
-        color: '#ef4444',
-    },
     eyebrow: {
         fontSize: 12,
         fontWeight: '700',
@@ -505,40 +262,5 @@ const styles = StyleSheet.create({
         fontSize: 16,
         lineHeight: 24,
         color: '#4a4a75',
-    },
-    footer: {
-        width: '100%',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 16,
-        paddingBottom: 12,
-    },
-    counterBlock: {
-        flex: 1,
-        alignItems: 'center',
-        gap: 8,
-    },
-    counterIcon: {
-        fontSize: 28,
-    },
-    counterValue: {
-        fontSize: 24,
-        fontWeight: '800',
-        color: '#1a1a31',
-    },
-    cardPressable: {
-        position: 'absolute',
-    },
-    resetButton: {
-        paddingHorizontal: 18,
-        paddingVertical: 12,
-        borderRadius: 999,
-        backgroundColor: '#1a1a31',
-    },
-    resetButtonText: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#fff',
     },
 });
