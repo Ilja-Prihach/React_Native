@@ -2,13 +2,24 @@ import {useMemo, useState} from "react";
 import {Pressable, StyleSheet, Text, View} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import BackButton from "@/components/BackButton";
-import Animated, {FadeIn, useSharedValue} from "react-native-reanimated";
+import Animated, {FadeIn, SharedValue, useAnimatedStyle, useSharedValue} from "react-native-reanimated";
 
 
 type Card = {
     id: number;
     title: string;
     color: string;
+};
+type StackCardProps = {
+    card: Card;
+    index: number;
+    isTopCard: boolean;
+    onPress: () => void;
+    stackProgress: SharedValue<number>;
+    translateX: SharedValue<number>;
+    translateY: SharedValue<number>;
+    rotation: SharedValue<number>;
+    scale: SharedValue<number>;
 };
 
 const COLORS = ['#d00f0f', '#14d9cd', '#0f42ee', '#94d023', '#FFEAA7'];
@@ -34,6 +45,53 @@ function createCard(index: number): Card {
     }
 }
 
+function StackCard({
+                       card,
+                       index,
+                       isTopCard,
+                       onPress,
+                       stackProgress,
+                       translateX,
+                       translateY,
+                       rotation,
+                       scale,
+                   }: StackCardProps) {
+    const cardAnimatedStyle = useAnimatedStyle(() => {
+        const baseTranslateY = index * CARD_STACK_OFFSET;
+        const baseScale = 1 - index * 0.05;
+
+        return {
+            zIndex: VISIBLE_CARDS - index,
+            transform: [
+                { translateX: isTopCard ? translateX.value : 0 },
+                { translateY: isTopCard ? baseTranslateY + translateY.value : baseTranslateY },
+                { rotateZ: isTopCard ? `${rotation.value}deg` : '0deg' },
+                { scale: isTopCard ? baseScale * scale.value : baseScale },
+            ],
+        };
+    });
+
+    return (
+        <Pressable
+            onPress={isTopCard ? onPress : undefined}
+            disabled={!isTopCard}
+            style={styles.cardPressable}
+        >
+            <Animated.View
+                entering={FadeIn.springify()}
+                style={[
+                    styles.card,
+                    { backgroundColor: card.color },
+                    cardAnimatedStyle,
+                ]}
+            >
+                <Text style={styles.cardTitle}>{card.title}</Text>
+            </Animated.View>
+        </Pressable>
+    );
+}
+
+
 export default function SwipeRatingScreen() {
     const [cards, setCards] = useState<Card[]>(createInitialCards);
     const [nextCardIndex, setNextCardIndex] = useState(CARD_TITLES.length);
@@ -51,6 +109,16 @@ export default function SwipeRatingScreen() {
         return cards.slice(0, VISIBLE_CARDS);
     }, [cards]);
 
+    function handleResetCounters() {
+        setLikesCount(0);
+        setDislikesCount(0);
+    }
+
+    function handleTopCardPress() {
+        console.log('Top card pressed');
+    }
+
+
     return (
         <SafeAreaView style={styles.screen} edges={['top']}>
             <View style={styles.topBar}>
@@ -67,15 +135,28 @@ export default function SwipeRatingScreen() {
                 </View>
 
                 <View style={styles.stackContainer}>
-                    {visibleCards.map((card) => (
-                        <Animated.View
-                            key={card.id}
-                            entering={FadeIn.springify()}
-                            style={[styles.card, { backgroundColor: card.color }]}
-                        >
-                            <Text style={styles.cardTitle}>{card.title}</Text>
-                        </Animated.View>
-                    ))}
+                    {visibleCards
+                        .slice()
+                        .reverse()
+                        .map((card, reversedIndex) => {
+                            const index = visibleCards.length - 1 - reversedIndex;
+                            const isTopCard = index === 0;
+
+                            return (
+                                <StackCard
+                                    key={card.id}
+                                    card={card}
+                                    index={index}
+                                    isTopCard={isTopCard}
+                                    onPress={handleTopCardPress}
+                                    stackProgress={stackProgress}
+                                    translateX={translateX}
+                                    translateY={translateY}
+                                    rotation={rotation}
+                                    scale={scale}
+                                />
+                            );
+                        })}
                 </View>
 
                 <View style={styles.footer}>
@@ -84,7 +165,7 @@ export default function SwipeRatingScreen() {
                         <Text style={styles.counterValue}>{dislikesCount}</Text>
                     </View>
 
-                    <Pressable style={styles.resetButton}>
+                    <Pressable style={styles.resetButton} onPress={handleResetCounters}>
                         <Text style={styles.resetButtonText}>Сбросить</Text>
                     </Pressable>
 
@@ -185,6 +266,9 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: '800',
         color: '#1a1a31',
+    },
+    cardPressable: {
+        position: 'absolute',
     },
     resetButton: {
         paddingHorizontal: 18,

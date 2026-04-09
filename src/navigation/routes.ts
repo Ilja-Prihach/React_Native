@@ -12,6 +12,7 @@ export const savedProfilesHref = '/examples/saved-profiles' satisfies Href;
 export const renderFlatListHref = '/examples/render-flatlist' satisfies Href;
 export const nativeFeedbackHref = '/examples/native-feedback' satisfies Href;
 export const reanimatedHref = '/examples/reanimated' satisfies Href;
+export const swipeRatingHref = '/examples/swipe-rating' satisfies Href;
 
 export function detailsHref(id: DemoItem['id']) {
   return {
@@ -39,6 +40,10 @@ export function demoItemHref(id: DemoItem['id']) {
 
   if (id === 'reanimated') {
     return reanimatedHref;
+  }
+
+  if (id === 'swipe-rating') {
+    return swipeRatingHref;
   }
 
   return detailsHref(id);

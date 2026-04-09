@@ -31,6 +31,12 @@ export const demoItems: DemoItem[] = [
     category: 'Анимации',
     summary: 'Плавные 60 fps анимации на UI-потоке: shared values, timing, spring, layout transitions.',
   },
+  {
+    id: 'swipe-rating',
+    title: 'Свайп лайк / дизлайк',
+    category: 'Анимации',
+    summary: 'Карточный стек со свайпом влево и вправо, счётчиками реакций и сбросом состояния.',
+  },
 ];
 
 export function getDemoItemById(id: string) {

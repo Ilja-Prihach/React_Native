@@ -61,6 +61,13 @@ export default function TabsLayout() {
             href: null,
         }}
       />
+        <Tabs.Screen
+            name="examples/swipe-rating"
+            options={{
+                href: null,
+            }}
+        />
     </Tabs>
+
   );
 }
