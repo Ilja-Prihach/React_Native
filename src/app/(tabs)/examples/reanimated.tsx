@@ -199,13 +199,6 @@ export default function ReanimatedScreen() {
         });
 
         setNextCardIndex((prev) => prev + 1);
-
-        // translateX.value = 0;
-        // translateY.value = 0;
-        // rotation.value = 0;
-        // scale.value = 1;
-        // stackProgress.value = 0;
-        // isSwiping.value = false;
     }
 
     function resetCardPosition() {
