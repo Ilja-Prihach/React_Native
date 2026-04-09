@@ -1,6 +1,6 @@
 import type { Card } from './types';
 
-export const COLORS = ['#dc0c0c', '#16e7d8', '#154af5', '#31e316', '#FFEAA7'];
+export const COLORS = ['#dc0c0c', '#16e7d8', '#154af5', '#fcd00b', '#31e316'];
 export const CARD_TITLES = ['Первая', 'Вторая', 'Третья', 'Четвёртая', 'Пятая'];
 
 export const VISIBLE_CARDS = 4;
