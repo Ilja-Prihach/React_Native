@@ -13,6 +13,7 @@ export const renderFlatListHref = '/examples/render-flatlist' satisfies Href;
 export const nativeFeedbackHref = '/examples/native-feedback' satisfies Href;
 export const reanimatedHref = '/examples/reanimated' satisfies Href;
 export const swipeRatingHref = '/examples/swipe-rating' satisfies Href;
+export const gestureHandlerHref = '/examples/gesture-handler' satisfies Href;
 
 export function detailsHref(id: DemoItem['id']) {
   return {
@@ -46,6 +47,10 @@ export function demoItemHref(id: DemoItem['id']) {
     return swipeRatingHref;
   }
 
+  if (id === 'gesture-handler') {
+    return gestureHandlerHref;
+  }
+
   return detailsHref(id);
 }
 
@@ -55,7 +60,9 @@ export function isExampleDemoItem(id: DemoItem['id']) {
     id === 'async-storage' ||
     id === 'flatlist-performance' ||
     id === 'native-feedback' ||
-    id === 'reanimated'
+    id === 'reanimated' ||
+    id === 'swipe-rating' ||
+    id === 'gesture-handler'
   );
 }
 

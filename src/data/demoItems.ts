@@ -37,6 +37,12 @@ export const demoItems: DemoItem[] = [
     category: 'Анимации',
     summary: 'Карточный стек со свайпом влево и вправо, счётчиками реакций и сбросом состояния.',
   },
+  {
+    id: 'gesture-handler',
+    title: 'Жесты и мультитач',
+    category: 'Жесты',
+    summary: 'Pan, Pinch, Rotation одновременно. Инерция, пружина, двойной тап для сброса.',
+  },
 ];
 
 export function getDemoItemById(id: string) {

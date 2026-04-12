@@ -67,6 +67,12 @@ export default function TabsLayout() {
                 href: null,
             }}
         />
+        <Tabs.Screen
+            name="examples/gesture-handler"
+            options={{
+                href: null,
+            }}
+        />
     </Tabs>
 
   );
