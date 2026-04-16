@@ -80,6 +80,7 @@ export default function SwipeCard({
         });
 
     const cardAnimatedStyle = useAnimatedStyle(() => {
+        'worklet';
         const baseTranslateY = index * CARD_STACK_OFFSET;
         const nextTranslateY = Math.max(index - 1, 0) * CARD_STACK_OFFSET;
 
@@ -104,6 +105,7 @@ export default function SwipeCard({
     });
 
     const likeBadgeStyle = useAnimatedStyle(() => {
+        'worklet';
         const opacity = isTopCard
             ? Math.min(Math.max(translateX.value / SWIPE_X_THRESHOLD, 0), 1)
             : 0;
@@ -118,6 +120,7 @@ export default function SwipeCard({
     });
 
     const dislikeBadgeStyle = useAnimatedStyle(() => {
+        'worklet';
         const opacity = isTopCard
             ? Math.min(Math.max(-translateX.value / SWIPE_X_THRESHOLD, 0), 1)
             : 0;
